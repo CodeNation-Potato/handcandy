@@ -8,18 +8,23 @@ mp_hands = mp.solutions.hands
 mp_draw = mp.solutions.drawing_utils
 hands = mp_hands.Hands(min_detection_confidence=0.9, min_tracking_confidence=0.9)
 cap = cv2.VideoCapture(0)
-servo = AngularServo(14, min_angle=0, max_angle=180, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000)
-lastAngle = 0
+servo = AngularServo(14, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 200)
-currentAngle = 90
 
-def set_angle(angle):
-    servo.angle = angle
+def set_angle():
+      while (True):
+	servo.angle = 90
+      	print("Turning 90")
+        sleep(2)
+        print("Turning back")
+        servo.angle = -90
+        sleep(2)
+        break
+print("Finished")
 
 def euclidean_distance(point1, point2):
     return math.sqrt((point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2 + (point1.z - point2.z) ** 2)
-
 
 
 while cap.isOpened():
@@ -57,26 +62,16 @@ while cap.isOpened():
             print("Abs Value X Distance: " + str(abs(middle_finger_mcp.x - index_finger_mcp.x)))
             print("Abs Value Y Distance: " + str(abs(fingertips[4].y - pinkie_finger_mcp.y)))
             if abs(fingertips[4].y - pinkie_finger_mcp.y) >= 0.14:
-                currentAngle = 90
+                set_angle()
                 cv2.putText(frame, 'Open Palm', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             if abs(middle_finger_mcp.x - index_finger_mcp.x) < 0.04:  # Adjust this threshold based on your camera setup
                 cv2.putText(frame, 'Get Closer', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
-                currentAngle = 180
             elif abs(fingertips[4].y - pinkie_finger_mcp.y) < 0.14:  # Adjust this threshold if needed
-                currentAngle = 180
                 cv2.putText(frame, 'Closed Palm', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             else:
-                currentAngle = 90
+                cv2.putText(frame, 'No Hand :(', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
                 #currentAngle = 180
-                #cv2.putText(frame, 'Open Palm', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)   
-
-
-    sleep(0.1)
-    cv2.imshow("Candy Dispenser Hand Camera", frame)
-
-    if (lastAngle != currentAngle):
-        set_angle(currentAngle)
-        lastAngle = currentAngle
+                #cv2.putText(frame, 'Open Palm', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)  
 
     if cv2.waitKey(1) & 0xFF == ord(' '):
         break
